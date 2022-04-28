@@ -1,0 +1,10 @@
+{
+  "name": "free-code-camp-exercises",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^27.5.1",
+    "prettier": "^2.6.2"
+  }
+}
