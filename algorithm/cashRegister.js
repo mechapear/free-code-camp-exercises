@@ -1,3 +1,14 @@
+// @ts-check
+// สั่งให้ TypeScript มาเช็ค type ให้
+
+/**
+ * ประกาศ Type แบบ custom
+ * @typedef {'PENNY' | 'NICKEL' | 'DIME' | 'QUARTER' | 'ONE' | 'FIVE' | 'TEN' | 'TWENTY' | 'ONE HUNDRED'} CashType
+ * @typedef {[CashType, number][]} CashItemList
+ * @typedef {'OPEN' | 'INSUFFICIENT_FUNDS' | 'CLOSED'} CashRegisterStatus
+ * @typedef {{ status: CashRegisterStatus, change: CashItemList }} CashRegisterResult
+ */
+
 // หาว่าต้องทอนเงินเท่าไหร่ (price - cash)
 // มี cid อยู่เท่าไหร่ (เอาค่ามาบวกกันทั้งหมด)
 // เอาเงินที่ต้องทอนไป่ดูใน cid ว่าพอมั้ย
@@ -8,6 +19,11 @@
 // เก็บข้อมูลแบบ array จะเหมาะกับการใช้ข้อมูลในรูปแบบลำดับ และมักจะเอาข้อมูลไปใช้ทีเดียวทั้งชุดเลย
 // แต่ถ้้าต้องการใช้ข้อมูลแค่ item เดียว โดยที่รู้ key อยู่แล้ว ควรเก็บข้อมูลด้วย {} จะสามารถเอาข้อมูลที่ต้องการไปใช้ได้ง่ายกว่า
 // ตัวอย่าง ถ้ารู้ key แต่เก็บข้อมูลแบบ Array จ้องต้องใช้ .find() หา item ที่ต้องการ แต่ Object จะใช้ Obj.key ได้เลย
+/**
+ * เขียนด้วย syntax TypeScript
+ * Record = Object
+ * @type {Record<CashType, number>}
+ */
 const currencyUnitInCent = {
   'ONE HUNDRED': 10000,
   TWENTY: 2000,
@@ -20,12 +36,13 @@ const currencyUnitInCent = {
   PENNY: 1,
 }
 
+/**
+ * @param {number} price
+ * @param {number} cash
+ * @param {CashItemList} cid
+ * @returns {CashRegisterResult}
+ */
 function checkCashRegister(price, cash, cid) {
-  let output = {
-    status: '',
-    change: [],
-  }
-
   // In order to avoid floating point error,
   // change currency unit from dollar to cent by multiplying by 100
   const changeInCent = (cash - price) * 100
@@ -44,44 +61,51 @@ function checkCashRegister(price, cash, cid) {
   // and check if the cash in the drawer is enough for the change.
   const totalCid = sumCid(sortedCid)
 
+  if (changeInCent === totalCid) {
+    return { status: 'CLOSED', change: cid }
+  }
+
+  if (changeInCent > totalCid) {
+    return { status: 'INSUFFICIENT_FUNDS', change: [] }
+  }
+
   const totalChangeInCent = checkEnoughCid(changeInCent, sortedCid)
 
-  if (changeInCent === totalCid) {
-    output.status = 'CLOSED'
-    output.change = cid
-    return output
+  if (totalChangeInCent.length === 0) {
+    return { status: 'INSUFFICIENT_FUNDS', change: [] }
   }
 
-  if (changeInCent > totalCid || totalChangeInCent.length === 0) {
-    output.status = 'INSUFFICIENT_FUNDS'
-    return output
-  }
-
-  if (changeInCent < totalCid || totalChangeInCent.length !== 0) {
-    output.status = 'OPEN'
-    output.change = totalChangeInDollar(totalChangeInCent)
-    return output
-  }
-
-  return output
+  return { status: 'OPEN', change: totalChangeInDollar(totalChangeInCent) }
 }
 
-// In order to avoid floating point error,
-// change currency unit from dollar to cent by multiplying by 100
+/**
+ * In order to avoid floating point error,
+ * change currency unit from dollar to cent by multiplying by 100
+ * @param {CashItemList} cid
+ * @returns {CashItemList}
+ */
 function cidDollarToCent(cid) {
   return cid.map(([name, value]) => {
     return [name, value * 100]
   })
 }
 
-// change currency unit from cent to dollar
+/**
+ * change currency unit from cent to dollar
+ * @param {CashItemList} totalChange
+ * @returns {CashItemList}
+ */
 function totalChangeInDollar(totalChange) {
   return totalChange.map(([name, value]) => {
     return [name, value / 100]
   })
 }
 
-// sort cid from highest to lowest value
+/**
+ * sort cid from highest to lowest value
+ * @param {CashItemList} cidCent
+ * @returns {CashItemList}
+ */
 function sortCid(cidCent) {
   return cidCent.sort(([curUnit1], [curUnit2]) => {
     const curValue1 = currencyUnitInCent[curUnit1]
@@ -103,13 +127,22 @@ function sortCid(cidCent) {
 //   })
 // }
 
+/**
+ * @param {CashItemList} sortedCid
+ * @returns {number}
+ */
 function sumCid(sortedCid) {
   return sortedCid.reduce((sumNum, [, num]) => {
     return num + sumNum
   }, 0)
 }
 
-// check if the wanted cid is enough for the change
+/**
+ * check if the wanted cid is enough for the change
+ * @param {number}changeInCent
+ * @param {CashItemList} sortedCid
+ * @returns {CashItemList}
+ */
 function checkEnoughCid(changeInCent, sortedCid) {
   let changeLeft = changeInCent
   let totalChange = []
@@ -151,10 +184,5 @@ function checkEnoughCid(changeInCent, sortedCid) {
   })
   return totalChange
 }
-
-// 1.ถ้าแบงค์ใหญ่กว่า change ข้าม
-// 2.ถ้าแบงค์<=change ให้ดู value ว่าพอรึป่าว
-//   ถ้าไม่พอก็ข้าม
-//   ถ้าพอก็เอาเงินไปทอน เท่ากับ change
 
 module.exports = { checkCashRegister }
