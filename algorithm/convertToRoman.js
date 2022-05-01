@@ -38,9 +38,9 @@ function convertToRoman(num) {
   const numInValueOrder = splitNumToArray(num)
   const romanArray = numInValueOrder.map((numStr, index) => {
     // ต้องการเพื่อหา symbolUnit ลำดับถัดไป แต่ข้อมูล romanSymbol เป็น object ไม่เหมาะที่จะหาลำกับถัดไป เพราะ object ไม่เน้นที่ลำดับ
-    // เลยเปลี่ยนเป็น array ด้วยวิธี Object.keys() จะได้ Array ของ key หรือ Array ของ romanSymbol value ข้างใน array เป็น string
-    const symbolUnit = Object.keys(romanSymbol)[index]
-    return numToRoman(numStr, romanSymbol[symbolUnit])
+    // เลยเปลี่ยนเป็น array ด้วยวิธี Object.values() จะได้ Array ของ value หรือ Array ของ romanSymbol, value ข้างใน array เป็น string
+    const symbolUnitObj = Object.values(romanSymbol)[index]
+    return numToRoman(numStr, symbolUnitObj)
   })
   return romanNum(romanArray)
 }
