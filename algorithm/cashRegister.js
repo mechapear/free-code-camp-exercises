@@ -49,17 +49,9 @@ function checkCashRegister(price, cash, cid) {
 
   const cidCent = cidDollarToCent(cid)
 
-  // To return the change correctly, if we needed to return 100 dollars for the change,
-  // and we had [['PENNY', 100], ['ONE HUNDRED', 100]] in the drawer,
-  // we would need to return ['ONE HUNDRED', 100] instead of ['PENNY', 100]
-  // that means, we have to return the highest value first.
-  // So, we need to sort the cid because the cid from the parameter
-  // is not guaranteed to be sorted they way we want.
-  const sortedCid = sortCid(cidCent)
-
   // Calculate the total cash in the drawer
   // and check if the cash in the drawer is enough for the change.
-  const totalCid = sumCid(sortedCid)
+  const totalCid = sumCid(cidCent)
 
   if (changeInCent === totalCid) {
     return { status: 'CLOSED', change: cid }
@@ -69,7 +61,7 @@ function checkCashRegister(price, cash, cid) {
     return { status: 'INSUFFICIENT_FUNDS', change: [] }
   }
 
-  const totalChangeInCent = checkEnoughCid(changeInCent, sortedCid)
+  const totalChangeInCent = checkEnoughCid(changeInCent, cidCent)
 
   if (totalChangeInCent.length === 0) {
     return { status: 'INSUFFICIENT_FUNDS', change: [] }
@@ -140,10 +132,18 @@ function sumCid(sortedCid) {
 /**
  * check if the wanted cid is enough for the change
  * @param {number}changeInCent
- * @param {CashItemList} sortedCid
+ * @param {CashItemList} cidCent
  * @returns {CashItemList}
  */
-function checkEnoughCid(changeInCent, sortedCid) {
+function checkEnoughCid(changeInCent, cidCent) {
+  // To return the change correctly, if we needed to return 100 dollars for the change,
+  // and we had [['PENNY', 100], ['ONE HUNDRED', 100]] in the drawer,
+  // we would need to return ['ONE HUNDRED', 100] instead of ['PENNY', 100]
+  // that means, we have to return the highest value first.
+  // So, we need to sort the cid because the cid from the parameter
+  // is not guaranteed to be sorted they way we want.
+  const sortedCid = sortCid(cidCent)
+
   let changeLeft = changeInCent
   let totalChange = []
   sortedCid.forEach(([name, value]) => {
@@ -172,12 +172,7 @@ function checkEnoughCid(changeInCent, sortedCid) {
         const currentChange =
           currencyUnitInCent[name] *
           Math.trunc(changeLeft / currencyUnitInCent[name])
-        totalChange.push([
-          name,
-          changeLeft % currencyUnitInCent[name] === 0
-            ? changeLeft
-            : currentChange,
-        ])
+        totalChange.push([name, currentChange])
         changeLeft = changeLeft - currentChange
       }
     }
